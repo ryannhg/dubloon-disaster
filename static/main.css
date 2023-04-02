@@ -162,14 +162,40 @@ body {
   left: 0;
   width: 2rem;
   height: 2rem;
-  background-color: goldenrod;
   border-radius: 50%;
 
   font-weight: bold;
-  text-shadow: 0 0.125em 0.25em black;
+  text-shadow: 0 1px 0.25em black;
+  box-shadow: 0 0.125rem 0.25em rgba(0,0,0,0.15);
   display: flex;
   align-items: center;
   justify-content: center;
   line-height: 1;
   font-size: 0.75rem;
+  border: solid 0.125rem;
+}
+
+.coin--copper {
+  background: chocolate;
+  border-color: hsl(25, 75%, 27%);
+}
+
+.coin--silver {
+  background: silver;
+  border-color: hsl(0, 0%, 55%);
+}
+
+.coin--gold {
+  background: goldenrod;
+  border-color: hsl(43, 74%, 32%);
+}
+
+.coin--platinum {
+  background: aliceblue;
+  border-color: hsl(208, 100%, 77%);
+}
+
+.coin--diamond {
+  background: aquamarine;
+  border-color:hsl(160, 100%, 55%);
 }

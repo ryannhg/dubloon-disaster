@@ -142,6 +142,25 @@ coinToValue coin =
             500
 
 
+coinToClassName : Coin -> String
+coinToClassName coin =
+    case coin.kind of
+        Copper ->
+            "coin--copper"
+
+        Silver ->
+            "coin--silver"
+
+        Gold ->
+            "coin--gold"
+
+        Platinum ->
+            "coin--platinum"
+
+        Diamond ->
+            "coin--diamond"
+
+
 type alias Player =
     { x : Float
     , y : Float
@@ -609,6 +628,7 @@ view shared model =
                             Just coin ->
                                 div
                                     [ class "coin"
+                                    , class (coinToClassName coin)
                                     , style "transform"
                                         ("translate(calc(${x}rem - 50%), calc(${y}rem - 50%)"
                                             |> String.replace "${x}" (String.fromFloat (toRem coin.x))
