@@ -95,6 +95,28 @@ body {
   border-radius: 50%;
 }
 
+.spawn-debug-1 {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 8rem;
+  height: 8rem;
+  background-color: mediumaquamarine;
+  opacity: 0.5;
+  border-radius: 50%;
+}
+
+.spawn-debug-2 {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 16rem;
+  height: 16rem;
+  background-color: mediumseagreen;
+  opacity: 0.5;
+  border-radius: 50%;
+}
+
 .arrow {
   position: absolute;
   top: 0;
@@ -142,7 +164,7 @@ body {
   height: 2rem;
   background-color: goldenrod;
   border-radius: 50%;
-  
+
   font-weight: bold;
   text-shadow: 0 0.125em 0.25em black;
   display: flex;

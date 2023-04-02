@@ -74,6 +74,11 @@ mineGenerator player =
     Random.map2 Mine
         (Random.float 0 1)
         (Random.float 0 1)
+        |> preventSpawningOnTopOf
+            { multiple = 8
+            , generator = mineGenerator
+            , player = player
+            }
 
 
 coinGenerator : Player -> Random.Generator Coin
@@ -82,6 +87,29 @@ coinGenerator player =
         (Random.float 0 1)
         (Random.float 0 1)
         coinKindGenerator
+        |> preventSpawningOnTopOf
+            { multiple = 4
+            , generator = coinGenerator
+            , player = player
+            }
+
+
+preventSpawningOnTopOf :
+    { multiple : Float
+    , generator : Player -> Random.Generator { point | x : Float, y : Float }
+    , player : Player
+    }
+    -> Random.Generator { point | x : Float, y : Float }
+    -> Random.Generator { point | x : Float, y : Float }
+preventSpawningOnTopOf { multiple, generator, player } =
+    Random.andThen
+        (\item ->
+            if isWithinGeneralArea multiple item player then
+                generator player
+
+            else
+                Random.constant item
+        )
 
 
 coinKindGenerator : Random.Generator CoinKind
@@ -269,12 +297,53 @@ updateMines msElapsed game =
                 d =
                     getDistance mine game.player
 
+                a =
+                    getAngleInRadians mine game.player
+
                 speed =
-                    0.0001
+                    0.00001
+
+                v =
+                    if d == 0 then
+                        speed
+
+                    else
+                        (speed / d / d)
+                            |> Basics.clamp 0 (maxVelocity / 2)
             in
-            mine
+            { mine
+                | x =
+                    (cos a * v * msElapsed + mine.x)
+                        |> Basics.clamp minPosition maxPosition
+                , y =
+                    (sin a * v * msElapsed + mine.y)
+                        |> Basics.clamp minPosition maxPosition
+            }
     in
-    { game | mines = List.map moveMine game.mines }
+    { game
+        | mines =
+            let
+                indexedMines : List ( Int, Mine )
+                indexedMines =
+                    game.mines
+                        |> List.map moveMine
+                        |> List.indexedMap Tuple.pair
+
+                isNotOverlapping : ( Int, Mine ) -> Maybe Mine
+                isNotOverlapping ( index, mine ) =
+                    let
+                        hasCollided ( otherIndex, otherMine ) =
+                            otherIndex /= index && isIntersecting mine otherMine
+                    in
+                    if List.any hasCollided indexedMines then
+                        Nothing
+
+                    else
+                        Just mine
+            in
+            indexedMines
+                |> List.filterMap isNotOverlapping
+    }
 
 
 updatePlayer : Float -> Game -> Game
@@ -316,9 +385,13 @@ checkIfPickingUpCoin game =
                     [ coinGenerator game.player
                         |> Random.generate GeneratedCoin
                         |> Effect.sendCmd
-                    , mineGenerator game.player
-                        |> Random.generate GeneratedMine
-                        |> Effect.sendCmd
+                    , if List.length game.mines < maxMines then
+                        mineGenerator game.player
+                            |> Random.generate GeneratedMine
+                            |> Effect.sendCmd
+
+                      else
+                        Effect.none
                     ]
                 )
 
@@ -331,13 +404,23 @@ checkIfPickingUpCoin game =
             ( game, Effect.none )
 
 
+radius : Float
+radius =
+    1 / 38
+
+
 isIntersecting : { a | x : Float, y : Float } -> { b | x : Float, y : Float } -> Bool
 isIntersecting a b =
-    let
-        radius =
-            1 / 38
-    in
-    getDistance a b < radius + radius
+    getDistance a b < 2 * radius
+
+
+isWithinGeneralArea :
+    Float
+    -> { a | x : Float, y : Float }
+    -> { b | x : Float, y : Float }
+    -> Bool
+isWithinGeneralArea multiple a b =
+    getDistance a b < multiple * radius
 
 
 getDistance : { a | x : Float, y : Float } -> { b | x : Float, y : Float } -> Float
@@ -360,6 +443,12 @@ type alias Movement =
     }
 
 
+maxMines : Int
+maxMines =
+    8
+
+
+acceleration : Float
 acceleration =
     0.000001
 
@@ -548,6 +637,28 @@ view shared model =
                                 , style "transform"
                                     ("rotate(${r}rad)"
                                         |> String.replace "${r}" (String.fromFloat game.player.rotation)
+                                    )
+                                ]
+                                []
+                            ]
+
+                    viewSpawnDebugAreas =
+                        div []
+                            [ div
+                                [ class "spawn-debug-1"
+                                , style "transform"
+                                    ("translate(calc(${x}rem - 50%), calc(${y}rem - 50%)"
+                                        |> String.replace "${x}" (String.fromFloat (toRem game.player.x))
+                                        |> String.replace "${y}" (String.fromFloat (toRem game.player.y))
+                                    )
+                                ]
+                                []
+                            , div
+                                [ class "spawn-debug-2"
+                                , style "transform"
+                                    ("translate(calc(${x}rem - 50%), calc(${y}rem - 50%)"
+                                        |> String.replace "${x}" (String.fromFloat (toRem game.player.x))
+                                        |> String.replace "${y}" (String.fromFloat (toRem game.player.y))
                                     )
                                 ]
                                 []
