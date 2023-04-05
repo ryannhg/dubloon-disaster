@@ -75,7 +75,7 @@ mineGenerator player =
         (Random.float 0 1)
         (Random.float 0 1)
         |> preventSpawningOnTopOf
-            { multiple = 8
+            { multiple = 12
             , generator = mineGenerator
             , player = player
             }
@@ -707,6 +707,7 @@ view shared model =
                 [ div [ class "game" ]
                     [ div [ class "score" ]
                         [ text ("Score: " ++ String.fromInt game.score) ]
+                    , viewSpawnDebugAreas
                     , viewCoin
                     , viewPlayerBoat
                     , div []
